@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>イベント一覧</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    .event {
+      border: 1px solid #ccc;
+      background-color: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .event h2 {
+      margin-top: 0;
+    }
+    .event button {
+      background-color: #007bff;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .event button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>イベント一覧</h1>
+  <div id="eventList">読み込み中...</div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("http://localhost:8080/api/events")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("イベント一覧の取得に失敗しました");
+          }
+          return response.json();
+        })
+        .then(events => {
+          const container = document.getElementById('eventList');
+          container.innerHTML = ""; // 初期の「読み込み中」を消す
+
+          if (events.length === 0) {
+            container.innerHTML = "<p>イベントがありません。</p>";
+            return;
+          }
+
+          events.forEach(event => {
+            const div = document.createElement('div');
+            div.className = "event";
+            div.innerHTML = `
+              <h2>${event.title}</h2>
+              <p>${event.description}</p>
+              <p>📅 開催日時：${event.eventDate}</p>
+              <p>👥 定員：${event.capacity}名</p>
+              <a href="reservation.html?eventId=${event.id}">
+                <button type="button">この日程で予約</button>
+              </a>
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch(err => {
+          const container = document.getElementById('eventList');
+          container.innerHTML = `<p style="color:red;">イベント一覧の取得失敗：${err.message}</p>`;
+          console.error(err);
+        });
+    });
+  </script>
+</body>
+</html>

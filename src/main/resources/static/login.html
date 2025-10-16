@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ログイン</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f8ff;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input {
+      padding: 8px;
+      width: 200px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-top: 10px;
+    }
+    #message {
+      margin-top: 20px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ログイン</h1>
+
+  <form id="loginForm">
+    <label>メールアドレス：<input type="email" id="email" required></label>
+    <label>パスワード：<input type="password" id="password" required></label>
+    <button type="submit">ログイン</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include", // CORS＋Cookie対策（JWT未使用なら省略可）
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("ログインに失敗しました");
+        return res.text(); // ControllerがString返してるので `.text()` にする
+      })
+      .then(tokenOrMessage => {
+        if (tokenOrMessage.startsWith("認証失敗") || tokenOrMessage.startsWith("システムエラー")) {
+          document.getElementById("message").textContent = "エラー：" + tokenOrMessage;
+        } else {
+          // JWTトークンをlocalStorageに保存
+          localStorage.setItem("token", tokenOrMessage);
+          document.getElementById("message").textContent = "ログイン成功！メニューに移動します...";
+          setTimeout(() => {
+            window.location.href = "index.html"; // メニューがまだない場合は events.html に
+          }, 1000);
+        }
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "エラー：" + err.message;
+      });
+    });
+  </script>
+
+</body>
+</html>

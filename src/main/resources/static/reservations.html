@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>予約一覧</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 30px;
+    }
+    .reservation {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .reservation h3 {
+      margin: 0;
+    }
+    .reservation p {
+      margin: 5px 0;
+    }
+    .reservation button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .reservation button:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>予約一覧</h1>
+  <div id="reservationList">読み込み中...</div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("ログインしてください");
+      location.href = "login.html";
+    }
+
+    // トークンからユーザー情報を復元（JWTのペイロードをBase64デコード）
+    function parseJwt(token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload;
+      } catch {
+        return null;
+      }
+    }
+
+    const userEmail = parseJwt(token)?.sub; // payloadの"sub"がユーザーのメールアドレス
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("http://localhost:8080/api/reservations", {
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("予約一覧の取得に失敗しました");
+        return res.json();
+      })
+      .then(reservations => {
+        const container = document.getElementById("reservationList");
+        container.innerHTML = "";
+
+        if (reservations.length === 0) {
+          container.textContent = "予約はありません。";
+          return;
+        }
+
+        reservations.forEach(r => {
+          const div = document.createElement("div");
+          div.classList.add("reservation");
+
+          const reservedDate = new Date(r.reservedAt);
+          const formattedDate = reservedDate.toLocaleString("ja-JP");
+
+          div.innerHTML = `
+            <h3>${r.name} さん</h3>
+            <p>メール: ${r.email}</p>
+            <p>予約日時: ${formattedDate}</p>
+          `;
+
+          if (r.email === userEmail) {
+            const btn = document.createElement("button");
+            btn.textContent = "削除";
+            btn.onclick = () => deleteReservation(r.id);
+            div.appendChild(btn);
+          }
+
+          container.appendChild(div);
+        });
+      })
+      .catch(err => {
+        document.getElementById("reservationList").textContent = "エラー: " + err.message;
+      });
+    });
+
+    function deleteReservation(id) {
+      if (!confirm("この予約を削除しますか？")) return;
+
+      fetch(`http://localhost:8080/api/reservations/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": "Bearer " + token
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("削除に失敗しました");
+        location.reload();
+      })
+      .catch(err => {
+        alert("エラー: " + err.message);
+      });
+    }
+  </script>
+</body>
+</html>

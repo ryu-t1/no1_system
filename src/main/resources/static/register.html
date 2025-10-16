@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>新規アカウント登録</title>
+</head>
+<body>
+  <h1>新規アカウント登録</h1>
+  <form id="registerForm">
+    <label>名前：<input type="text" id="name" required></label><br>
+    <label>メールアドレス：<input type="email" id="email" required></label><br>
+    <label>パスワード：<input type="password" id="password" required></label><br>
+    <button type="submit">登録</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      // 🔧 URL修正（JWT対応バージョン）
+      fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, password })
+      })
+      .then(res => res.text())
+      .then(message => {
+        document.getElementById("message").textContent = message;
+
+        // ✅ 登録完了後にログイン画面へ自動遷移
+        if (message === "登録完了") {
+          setTimeout(() => {
+            location.href = "login.html";
+          }, 1000);
+        }
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "エラーが発生しました：" + err.message;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>予約フォーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f0f8ff;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input {
+      padding: 8px;
+      width: 200px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-top: 10px;
+    }
+    #message {
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>予約フォーム</h1>
+
+  <form id="reservationForm">
+    <label>名前：<input type="text" id="name" required></label><br>
+    <label>メールアドレス：<input type="email" id="email" required></label><br>
+    <button type="submit">予約する</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    document.getElementById("reservationForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      // URLからeventIdを取得し、数値に変換
+      const urlParams = new URLSearchParams(window.location.search);
+      const eventId = parseInt(urlParams.get("eventId"), 10);
+
+      // 入力値取得
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      // JWTトークン取得
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        document.getElementById("message").textContent = "ログインしてください。";
+        return;
+      }
+
+      if (!eventId || isNaN(eventId)) {
+        document.getElementById("message").textContent = "イベントIDが不正です。";
+        return;
+      }
+
+      fetch("http://localhost:8080/api/reservations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ eventId, name, email })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("予約失敗");
+        return res.json();
+      })
+      .then(data => {
+        document.getElementById("message").textContent = data.message || "予約が完了しました！";
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "エラーが発生しました：" + err.message;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>トップメニュー</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    a {
+      font-size: 18px;
+      text-decoration: none;
+      color: #007bff;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    #logoutButton {
+      margin-top: 20px;
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #logoutButton:hover {
+      background-color: #c82333;
+    }
+    #logoutMessage {
+      margin-top: 10px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>イベント予約システム</h1>
+
+  <ul>
+    <li><a href="events.html">📅 イベント一覧を見る</a></li>
+    <li><a href="reservations.html">📖 予約者一覧を表示</a></li>
+    <li><a href="register.html">🆕 アカウント登録</a></li>
+    <li><a href="login.html">🔐 ログイン</a></li>
+  </ul>
+
+  <button id="logoutButton">🚪 ログアウト</button>
+  <p id="logoutMessage"></p>
+
+  <script>
+
+
+    document.getElementById("logoutButton").addEventListener("click", function () {
+      localStorage.removeItem("token"); // JWTを削除
+      document.getElementById("logoutMessage").textContent = "ログアウトしました";
+      setTimeout(() => {
+        location.href = "login.html";
+      }, 1000);
+    });
+  </script>
+
+</body>
+</html>
